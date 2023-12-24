@@ -1,2 +1,8 @@
+scapy
+shutil
+sqlite3
 pystyle
 colorama
+requests
+pycrypto
+win32crypt
