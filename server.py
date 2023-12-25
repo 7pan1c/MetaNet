@@ -53,6 +53,7 @@ def banner():
 ║               ~ Developed by @7p4n1c                ║
 ║                                                     ║
 ╚═════════════════════════════════════════════════════╝
+
           Type "help" for the list of commands
     '''
     print(Colorate.Vertical(Colors.red_to_blue, Center.XCenter(x), 1))
